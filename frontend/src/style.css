@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-papel text-tinta font-body antialiased;
+}
+
+/* Cifras tabulares: que las columnas de números alineen */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Focus visible en todos los elementos interactivos */
+:focus-visible {
+  outline: 3px solid #e9b44c;
+  outline-offset: 2px;
+}
+
+/* Respetar preferencia de menos movimiento */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
