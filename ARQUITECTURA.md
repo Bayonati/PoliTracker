@@ -4,23 +4,23 @@
 
 ```mermaid
 graph TD
-    A["🌐 Fuentes de Datos Oficiales<br/>(datos.gov.co - Minhacienda)"]
+    A["🌐 FUENTES DE DATOS OFICIALES<br/>(datos.gov.co - Minhacienda)"]
     
-    A1["Dataset 5phs-yqfw<br/>Gastos del PGN<br/>246K registros"]
-    A2["Dataset 22f3-gynv<br/>Ingresos por Vigencia<br/>10K registros"]
+    A1["📊 Dataset 5phs-yqfw<br/>Gastos del PGN<br/>246K registros"]
+    A2["📈 Dataset 22f3-gynv<br/>Ingresos por Vigencia<br/>10K registros"]
     
-    B["⚙️ Ingesta de Datos<br/>(Python)"]
+    B["⚙️ INGESTA DE DATOS<br/>(Python Scripts)"]
     B1["soda_client.py<br/>Paginación + Reintentos"]
-    B2["ingestar_gastos.py<br/>Agrega + Upsert"]
-    B3["ingestar_ingresos.py<br/>Agrega + Upsert"]
+    B2["ingestar_gastos.py<br/>Limpia + Agrega + Upsert"]
+    B3["ingestar_ingresos.py<br/>Limpia + Agrega + Upsert"]
     
-    C["🗄️ PostgreSQL 15<br/>(Puerto 5433)<br/>45K gastos + 4K ingresos"]
+    C["🗄️ POSTGRESQL 15<br/>Puerto 5433<br/>45K gastos | 4K ingresos"]
     
-    D["🔌 Backend FastAPI<br/>(Puerto 8000)<br/>6 endpoints REST"]
+    D["🔌 BACKEND FASTAPI<br/>Puerto 8000<br/>6 Endpoints REST"]
     
-    E["🎨 Frontend Vue 3<br/>(Puerto 5173)<br/>SPA Interactivo"]
+    E["🎨 FRONTEND VUE 3<br/>Puerto 5173<br/>SPA - Treemap D3 + Tabla"]
     
-    F["👤 Ciudadano Colombiano<br/>(Sin login)<br/>Datos públicos + claros"]
+    F["👤 CIUDADANO COLOMBIANO<br/>Sin login | Datos públicos"]
     
     A --> A1
     A --> A2
@@ -35,12 +35,6 @@ graph TD
     C --> D
     D --> E
     E --> F
-    
-    style A fill:#e1f5ff
-    style C fill:#fff3e0
-    style D fill:#f3e5f5
-    style E fill:#e8f5e9
-    style F fill:#fce4ec
 ```
 
 ---
@@ -167,20 +161,20 @@ graph LR
 
 ```mermaid
 graph TD
-    APP["App.vue<br/>SPA Principal"]
+    APP["🎨 APP.VUE - SPA Principal"]
     
-    subgraph VISTAS["3 VISTAS"]
-        V1["📊 EXPLORADOR<br/>(Home)<br/>- Treemap drill-down<br/>- Toggle mapa/tabla<br/>- Barra ejecución<br/>- Breadcrumb"]
+    subgraph VISTAS["--- 3 VISTAS ---"]
+        V1["📊 EXPLORADOR - Home<br/>━━━━━━━━━━━━━━━<br/>✓ Treemap drill-down 3 niveles<br/>✓ Toggle Mapa/Tabla<br/>✓ Barra apropiado vs pagado<br/>✓ Breadcrumb navegable"]
         
-        V2["📈 INGRESOS vs GASTOS<br/>- Gráfica Chart.js<br/>- Tabla conceptos<br/>- Comparativa aforo/recaudo"]
+        V2["📈 INGRESOS vs GASTOS<br/>━━━━━━━━━━━━━━━<br/>✓ Gráfica Chart.js<br/>✓ Tabla conceptos con recaudo<br/>✓ Comparativa aforo vs recaudado"]
         
-        V3["ℹ️ ACERCA DE<br/>- ¿Qué es PoliTracker?<br/>- Links fuentes oficiales<br/>- Glosario ciudadano<br/>- Fecha ingesta"]
+        V3["ℹ️ ACERCA DE<br/>━━━━━━━━━━━━━━━<br/>✓ ¿Qué es PoliTracker?<br/>✓ Links fuentes oficiales<br/>✓ Glosario ciudadano<br/>✓ Fecha última ingesta"]
     end
     
-    subgraph NAVEGACION["NAVEGACIÓN"]
-        N1["Selector Año<br/>2023, 2024, 2025"]
-        N2["Breadcrumb<br/>Todo > Sector > Entidad"]
-        N3["Toggle Mapa/Tabla<br/>D3 vs DataTable"]
+    subgraph NAVEGACION["--- COMPONENTES COMPARTIDOS ---"]
+        N1["🗓️ SelectorAnio.vue<br/>2023 | 2024 | 2025"]
+        N2["🗂️ Breadcrumb.vue<br/>Todo › Sector › Entidad"]
+        N3["🔄 Toggle Mapa/Tabla<br/>Treemap ↔ DataTable"]
     end
     
     APP --> V1
@@ -190,14 +184,6 @@ graph TD
     V1 --> N1
     V1 --> N2
     V1 --> N3
-    
-    style APP fill:#e8f5e9,stroke:#2e7d32,stroke-width:3px
-    style V1 fill:#c8e6c9
-    style V2 fill:#c8e6c9
-    style V3 fill:#c8e6c9
-    style N1 fill:#a5d6a7
-    style N2 fill:#a5d6a7
-    style N3 fill:#a5d6a7
 ```
 
 ---
@@ -206,130 +192,83 @@ graph TD
 
 ```mermaid
 graph LR
-    API["🔌 FastAPI<br/>localhost:8000"]
+    API["🔌 FASTAPI<br/>localhost:8000<br/>6 ENDPOINTS"]
     
-    subgraph GASTO["Gasto - 4 Endpoints"]
-        E1["GET /gasto/sectores?anio<br/>→ 32 sectores + montos"]
-        E2["GET /gasto/entidades?anio&sector<br/>→ N entidades del sector"]
-        E3["GET /gasto/tipos?anio&sector&entidad<br/>→ Tipos de gasto"]
-        E4["GET /gasto/serie?anio&sector&entidad<br/>→ Serie mensual"]
+    subgraph GASTO["📊 GASTOS - 4 ENDPOINTS"]
+        E1["GET /gasto/sectores?anio<br/>━━━━━━━━━━━━━━━<br/>Responde: 32 sectores<br/>Con: apropiado, pagado, %"]
+        E2["GET /gasto/entidades?anio&sector<br/>━━━━━━━━━━━━━━━<br/>Responde: N entidades<br/>Dentro del sector elegido"]
+        E3["GET /gasto/tipos?anio&sector&entidad<br/>━━━━━━━━━━━━━━━<br/>Responde: Tipos de gasto<br/>FUNCIONAMIENTO | INVERSIÓN"]
+        E4["GET /gasto/serie?anio<br/>━━━━━━━━━━━━━━━<br/>Responde: 12 meses<br/>Apropiado + Pagado"]
     end
     
-    subgraph INGRESO["Ingresos - 2 Endpoints"]
-        E5["GET /ingresos/resumen?anio<br/>→ Aforo vs recaudo + conceptos"]
-        E6["GET /meta<br/>→ Años, fecha ingesta, fuentes"]
+    subgraph INGRESO["💰 INGRESOS - 2 ENDPOINTS"]
+        E5["GET /ingresos/resumen?anio<br/>━━━━━━━━━━━━━━━<br/>Responde: Aforo vs recaudo<br/>Desglose por concepto"]
+        E6["GET /meta<br/>━━━━━━━━━━━━━━━<br/>Responde: Años, fecha,<br/>Fuentes oficiales"]
     end
     
     API --> GASTO
     API --> INGRESO
     
-    E1 -.Drill-down.-> E2
-    E2 -.Drill-down.-> E3
-    E4 -.Serie temporal.-> E1
-    
-    style API fill:#f3e5f5,stroke:#6a1b9a,stroke-width:3px
-    style E1 fill:#ce93d8
-    style E2 fill:#ce93d8
-    style E3 fill:#ce93d8
-    style E4 fill:#ce93d8
-    style E5 fill:#ba68c8
-    style E6 fill:#ba68c8
+    E1 -->|drill-down| E2
+    E2 -->|drill-down| E3
 ```
 
 ---
 
-## 6. Propósito Final
+## 6. Propósito Final - Pipeline Completo
 
 ```mermaid
 graph LR
-    A["📊 Datos Brutos<br/>246K registros SODA"]
-    B["⚙️ Procesados<br/>Limpieza + Agregación<br/>45K registros útiles"]
-    C["💾 Almacenados<br/>PostgreSQL<br/>Consultas rápidas"]
-    D["🔌 Servidos<br/>FastAPI REST<br/>JSON con montos"]
-    E["🎨 Visualizados<br/>Vue 3 + D3<br/>Treemap interactivo"]
-    F["👤 Entendibles<br/>Ciudadano colombiano<br/>Sin login, sin jerga"]
+    A["📊 DATOS BRUTOS<br/>━━━━━━━━━━━━<br/>246K registros<br/>SODA API"]
     
-    A -->|Ingesta| B
-    B -->|Upsert| C
-    C -->|Queries SQL| D
-    D -->|APIs REST| E
-    E -->|UI/UX clara| F
+    B["⚙️ PROCESADOS<br/>━━━━━━━━━━━━<br/>Limpieza<br/>Agregación<br/>45K útiles"]
     
-    style A fill:#fff3e0
-    style B fill:#fff9c4
-    style C fill:#fce4ec
-    style D fill:#f3e5f5
-    style E fill:#e8f5e9
-    style F fill:#c8e6c9,stroke:#2e7d32,stroke-width:3px
+    C["💾 ALMACENADOS<br/>━━━━━━━━━━━━<br/>PostgreSQL<br/>Indexed<br/>Upsert"]
+    
+    D["🔌 SERVIDOS<br/>━━━━━━━━━━━━<br/>FastAPI<br/>6 endpoints<br/>JSON"]
+    
+    E["🎨 VISUALIZADOS<br/>━━━━━━━━━━━━<br/>Vue 3<br/>D3 Treemap<br/>Chart.js"]
+    
+    F["👤 ENTENDIBLES<br/>━━━━━━━━━━━━<br/>Ciudadano<br/>Sin login<br/>Sin jerga"]
+    
+    A -->|Script Python| B
+    B -->|INSERT ON CONFLICT| C
+    C -->|SELECT ... WHERE| D
+    D -->|fetch /api| E
+    E -->|Drill-down| F
 ```
 
 ---
 
-## 7. Stack Tecnológico
+## 7. Stack Tecnológico Completo
 
-```mermaid
-graph TB
-    subgraph DATOS["📥 Datos"]
-        D1["SODA API<br/>datos.gov.co"]
-        D2["5phs-yqfw<br/>Gastos"]
-        D3["22f3-gynv<br/>Ingresos"]
-    end
-    
-    subgraph INGESTA["⚙️ Procesamiento"]
-        I1["Python 3.11"]
-        I2["SQLAlchemy 2.x<br/>Decimal math"]
-        I3["Requests<br/>HTTP client"]
-    end
-    
-    subgraph BD["🗄️ Persistencia"]
-        B1["PostgreSQL 15"]
-        B2["Upsert<br/>Sin duplicados"]
-    end
-    
-    subgraph BACKEND["🔌 API"]
-        BA["FastAPI 0.115"]
-        BA1["Pydantic"]
-        BA2["Uvicorn"]
-    end
-    
-    subgraph FRONTEND["🎨 Web"]
-        F1["Vue 3.5<br/>SPA"]
-        F2["Vite 6.4<br/>Dev server"]
-        F3["TailwindCSS"]
-        F4["D3-hierarchy<br/>Treemap"]
-        F5["Chart.js<br/>Gráficas"]
-    end
-    
-    subgraph INFRA["☁️ Infraestructura"]
-        INF1["Docker"]
-        INF2["Docker Compose"]
-    end
-    
-    D1 --> D2
-    D1 --> D3
-    D2 --> I1
-    D3 --> I1
-    I1 --> I2
-    I1 --> I3
-    I2 --> B1
-    B1 --> B2
-    B2 --> BA
-    BA --> BA1
-    BA --> BA2
-    BA --> F1
-    F1 --> F2
-    F1 --> F3
-    F1 --> F4
-    F1 --> F5
-    INF1 --> B1
-    INF2 --> INF1
-    
-    style DATOS fill:#fff3e0
-    style INGESTA fill:#fff9c4
-    style BD fill:#fce4ec
-    style BACKEND fill:#f3e5f5
-    style FRONTEND fill:#e8f5e9
-    style INFRA fill:#e0f2f1
+| Capa | Tecnología | Detalles |
+|------|-----------|----------|
+| **📥 Datos** | SODA API (datos.gov.co) | 246K registros: 5phs-yqfw (gastos) + 22f3-gynv (ingresos) |
+| **⚙️ Ingesta** | Python 3.11 + SQLAlchemy 2.x | Paginación + Upsert + Decimal math (sin float) |
+| **🗄️ BD** | PostgreSQL 15 (Puerto 5433) | 45K gastos + 4K ingresos, Indexed, Unique constraints |
+| **🔌 Backend** | FastAPI 0.115 + Uvicorn | 6 endpoints REST, Pydantic, CORS habilitado |
+| **🎨 Frontend** | Vue 3.5 + Vite 6.4 | SPA, TailwindCSS, D3-hierarchy, Chart.js |
+| **☁️ Infra** | Docker + Docker Compose | Orquestación local, volúmenes persistentes |
+
+### Dependencias principales
+```
+Backend:
+  - fastapi==0.115.6
+  - sqlalchemy==2.0.36
+  - psycopg2-binary==2.9.10
+  - uvicorn[standard]==0.34.0
+
+Ingesta:
+  - requests==2.32.3
+  - python-dotenv==1.0.1
+
+Frontend:
+  - vue@3.5.38
+  - vite@6.4.3
+  - tailwindcss@3.4.19
+  - d3-hierarchy@3.1.2
+  - chart.js@4.5.1
 ```
 
 ---
