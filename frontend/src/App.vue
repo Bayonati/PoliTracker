@@ -39,7 +39,7 @@ const itemsConAve = computed(() => {
 <template>
   <div class="min-h-screen flex flex-col bg-papel">
     <!-- ===== HEADER ===== -->
-    <header class="relative overflow-hidden" style="background: #15294A;">
+    <header class="relative" style="background: #15294A;">
       <!-- Brillo radial turquesa -->
       <div class="absolute inset-0 pointer-events-none"
            style="background: radial-gradient(130% 150% at 86% 24%, rgba(43,167,181,0.26), transparent 58%)"></div>
@@ -102,7 +102,8 @@ const itemsConAve = computed(() => {
           style="
             height: clamp(80px, 20vw, 172px);
             right: 0;
-            bottom: 0;
+            bottom: -22px;
+            z-index: 10;
             filter: drop-shadow(0 8px 16px rgba(0,0,0,0.4));
           "
         />
