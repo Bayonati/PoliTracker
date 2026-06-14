@@ -238,32 +238,58 @@ function tecla(ev) {
       </div>
     </div>
 
-    <!-- Lista expandida de "Otros" ─────────────────────────────────────── -->
+  </div>
+
+  <!-- ── Modal "Otros" ────────────────────────────────────────────────── -->
+  <Teleport to="body">
     <div
       v-if="otrosAbierto && itemsOtros.length"
-      class="mt-3 bg-white border border-neutro/20 rounded-xl p-4"
+      class="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+      style="background: rgba(15,27,50,0.6);"
+      @click.self="otrosAbierto = false"
     >
-      <div class="flex justify-between items-center mb-3">
-        <h3 class="font-semibold text-tinta text-sm">Otros sectores ({{ itemsOtros.length }})</h3>
-        <button class="text-xs text-turquesa hover:underline" @click="otrosAbierto = false">Cerrar</button>
-      </div>
-      <ul class="divide-y divide-neutro/10">
-        <li v-for="item in itemsOtros" :key="item.nombre">
+      <div
+        class="w-full sm:w-[440px] bg-white rounded-t-2xl sm:rounded-2xl overflow-hidden shadow-2xl"
+        style="max-height: 72vh;"
+      >
+        <!-- Encabezado -->
+        <div class="flex items-center justify-between px-5 py-4 border-b"
+             style="border-color: rgba(107,118,134,0.15);">
+          <div>
+            <h3 class="font-display font-bold text-tinta text-base">
+              Otros sectores
+            </h3>
+            <p class="text-xs text-neutro mt-0.5">{{ itemsOtros.length }} sectores · toca uno para ver el detalle</p>
+          </div>
           <button
-            class="w-full flex items-center justify-between gap-3 py-2 text-left text-sm hover:bg-neutro/5 rounded px-1"
-            :disabled="esUltimoNivel"
-            @click="emit('drill', item.nombre)"
-          >
-            <div class="flex items-center gap-2 min-w-0">
-              <span class="flex-shrink-0 w-2.5 h-2.5 rounded-sm"
-                    :style="{ background: colorDeNombre(item.nombre) }"></span>
-              <span class="truncate text-tinta">{{ item.nombre }}</span>
-            </div>
-            <span class="tabular text-neutro shrink-0 text-xs">{{ formatoCiudadano(item.apropiado) }}</span>
-          </button>
-        </li>
-      </ul>
-    </div>
+            class="w-9 h-9 flex items-center justify-center rounded-full text-neutro text-xl font-light transition-colors"
+            style="background: rgba(107,118,134,0.1);"
+            aria-label="Cerrar"
+            @click="otrosAbierto = false"
+          >×</button>
+        </div>
 
-  </div>
+        <!-- Lista scrolleable -->
+        <ul class="overflow-y-auto divide-y" style="max-height: calc(72vh - 72px); border-color: rgba(107,118,134,0.08);">
+          <li v-for="item in itemsOtros" :key="item.nombre">
+            <button
+              class="w-full flex items-center gap-3 px-5 py-3.5 text-left transition-colors"
+              style="background: transparent;"
+              :disabled="esUltimoNivel"
+              @mouseenter="e => e.currentTarget.style.background = '#F7F8F5'"
+              @mouseleave="e => e.currentTarget.style.background = 'transparent'"
+              @click="() => { emit('drill', item.nombre); otrosAbierto = false }"
+            >
+              <span class="flex-shrink-0 w-3 h-3 rounded-sm"
+                    :style="{ background: colorDeNombre(item.nombre) }"></span>
+              <span class="flex-1 text-sm font-medium text-tinta min-w-0 truncate">{{ item.nombre }}</span>
+              <span class="text-xs text-neutro tabular shrink-0">{{ formatoCiudadano(item.apropiado) }}</span>
+              <span v-if="!esUltimoNivel" class="text-neutro text-sm shrink-0 ml-1">›</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </Teleport>
+
 </template>
