@@ -44,18 +44,22 @@ const itemsConAve = computed(() => {
       <div class="absolute inset-0 pointer-events-none"
            style="background: radial-gradient(130% 150% at 86% 24%, rgba(43,167,181,0.26), transparent 58%)"></div>
 
+      <!--
+        El padding-right reserva espacio para el barranquero en todos los tamaños:
+        móvil ~88px, tablet ~130px, desktop ~185px
+      -->
       <div class="relative max-w-6xl mx-auto px-4 sm:px-6"
-           style="min-height: 80px; padding-right: clamp(16px, 4vw, 200px);">
-        <div class="flex items-center justify-between gap-3 py-3 sm:py-4"
-             style="padding-right: clamp(0px, 14vw, 180px);">
+           style="min-height: 80px; padding-right: clamp(88px, 18vw, 200px);">
+
+        <div class="flex items-center justify-between gap-3 py-3 sm:py-4">
 
           <!-- Marca -->
           <div class="flex flex-col gap-0.5 flex-shrink-0">
             <div style="line-height: 0.94;">
               <span class="block font-display font-extrabold text-white tracking-tight"
-                    style="font-size: clamp(18px, 4vw, 27px);">Colombia</span>
+                    style="font-size: clamp(16px, 4.5vw, 27px);">Colombia</span>
               <span class="block font-display font-semibold tracking-tight"
-                    style="font-size: clamp(18px, 4vw, 27px); color: #7FD3DE;">Observa</span>
+                    style="font-size: clamp(16px, 4.5vw, 27px); color: #7FD3DE;">Observa</span>
             </div>
             <span class="hidden sm:block font-semibold"
                   style="font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: #8295B4;">
@@ -79,13 +83,17 @@ const itemsConAve = computed(() => {
           </nav>
         </div>
 
-        <!-- Barranquero — se oculta en pantallas muy pequeñas -->
+        <!-- Barranquero — visible en todos los tamaños, escala con clamp -->
         <img
           src="/assets/barranquero.png"
           alt="Barranquero, el ave de Colombia Observa"
-          class="absolute pointer-events-none hidden sm:block"
-          style="height: clamp(100px, 14vw, 172px); right: 0; top: -4px;
-                 filter: drop-shadow(0 12px 20px rgba(0,0,0,0.4));"
+          class="absolute pointer-events-none"
+          style="
+            height: clamp(80px, 20vw, 172px);
+            right: 0;
+            bottom: 0;
+            filter: drop-shadow(0 8px 16px rgba(0,0,0,0.4));
+          "
         />
       </div>
 
