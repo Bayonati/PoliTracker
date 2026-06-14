@@ -12,7 +12,7 @@ import TablaDetalle from './components/TablaDetalle.vue'
 
 const { state, nivel, inicializar, cambiarAnio, drillDown, irANivel } = useExplorer()
 
-const vista = ref('explorador')
+const vista = ref('acerca')
 const modoTabla = ref(false)
 
 onMounted(inicializar)
@@ -66,7 +66,7 @@ const itemsConAve = computed(() => {
           <!-- Navegación — solo en sm+ (en móvil va en la fila 2) -->
           <nav class="hidden sm:flex gap-1" aria-label="Navegación principal">
             <button
-              v-for="v in [['explorador', 'Explorador'], ['ingresos', 'Ingresos'], ['acerca', 'Acerca']]"
+              v-for="v in [['acerca', 'Acerca'], ['explorador', 'Explorador'], ['ingresos', 'Ingresos']]"
               :key="v[0]"
               class="px-3 py-2 rounded-lg transition-colors font-medium text-sm"
               :style="{
@@ -82,7 +82,7 @@ const itemsConAve = computed(() => {
         <!-- Fila 2: Navegación centrada — solo en móvil -->
         <nav class="flex sm:hidden justify-center gap-2 pb-3" aria-label="Navegación principal">
           <button
-            v-for="v in [['explorador', 'Explorador'], ['ingresos', 'Ingresos'], ['acerca', 'Acerca']]"
+            v-for="v in [['acerca', 'Acerca'], ['explorador', 'Explorador'], ['ingresos', 'Ingresos']]"
             :key="v[0]"
             class="px-5 py-2 rounded-lg transition-colors font-medium text-sm"
             :style="{
@@ -98,14 +98,7 @@ const itemsConAve = computed(() => {
         <img
           src="/assets/barranquero.png"
           alt="Barranquero, el ave de Colombia Observa"
-          class="absolute pointer-events-none"
-          style="
-            height: clamp(80px, 20vw, 172px);
-            right: 0;
-            bottom: -22px;
-            z-index: 10;
-            filter: drop-shadow(0 8px 16px rgba(0,0,0,0.4));
-          "
+          class="barranquero absolute pointer-events-none"
         />
       </div>
 
@@ -281,6 +274,21 @@ const itemsConAve = computed(() => {
 @media (min-width: 640px) {
   .header-row1 {
     padding-right: clamp(90px, 14vw, 180px);
+  }
+}
+
+/* Pájaro: móvil descansa sobre los botones de nav; desktop la cola asoma */
+.barranquero {
+  right: 0;
+  bottom: 0;           /* móvil: pegado al fondo del wrapper (encima de nav) */
+  height: clamp(72px, 19vw, 96px);
+  z-index: 10;
+  filter: drop-shadow(0 6px 14px rgba(0,0,0,0.38));
+}
+@media (min-width: 640px) {
+  .barranquero {
+    bottom: -16px;     /* desktop: la cola asoma ~16px bajo la franja */
+    height: clamp(82px, 11vw, 100px);
   }
 }
 </style>
