@@ -44,14 +44,10 @@ const itemsConAve = computed(() => {
       <div class="absolute inset-0 pointer-events-none"
            style="background: radial-gradient(130% 150% at 86% 24%, rgba(43,167,181,0.26), transparent 58%)"></div>
 
-      <!--
-        El padding-right reserva espacio para el barranquero en todos los tamaños:
-        móvil ~88px, tablet ~130px, desktop ~185px
-      -->
-      <div class="relative max-w-6xl mx-auto px-4 sm:px-6"
-           style="min-height: 80px; padding-right: clamp(88px, 18vw, 200px);">
+      <div class="relative max-w-6xl mx-auto px-4 sm:px-6" style="min-height: 80px;">
 
-        <div class="flex items-center justify-between gap-3 py-3 sm:py-4">
+        <!-- Fila 1: Logo + Navegación (desktop) -->
+        <div class="header-row1 flex items-center justify-between gap-3 py-3 sm:py-4">
 
           <!-- Marca -->
           <div class="flex flex-col gap-0.5 flex-shrink-0">
@@ -67,12 +63,12 @@ const itemsConAve = computed(() => {
             </span>
           </div>
 
-          <!-- Navegación -->
-          <nav class="flex flex-wrap gap-0.5 sm:gap-1" aria-label="Navegación principal">
+          <!-- Navegación — solo en sm+ (en móvil va en la fila 2) -->
+          <nav class="hidden sm:flex gap-1" aria-label="Navegación principal">
             <button
               v-for="v in [['explorador', 'Explorador'], ['ingresos', 'Ingresos'], ['acerca', 'Acerca']]"
               :key="v[0]"
-              class="px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-colors font-medium text-xs sm:text-sm"
+              class="px-3 py-2 rounded-lg transition-colors font-medium text-sm"
               :style="{
                 background: vista === v[0] ? 'rgba(255,255,255,0.16)' : 'transparent',
                 color: vista === v[0] ? '#FFFFFF' : 'rgba(255,255,255,0.72)',
@@ -82,6 +78,21 @@ const itemsConAve = computed(() => {
             >{{ v[1] }}</button>
           </nav>
         </div>
+
+        <!-- Fila 2: Navegación centrada — solo en móvil -->
+        <nav class="flex sm:hidden justify-center gap-2 pb-3" aria-label="Navegación principal">
+          <button
+            v-for="v in [['explorador', 'Explorador'], ['ingresos', 'Ingresos'], ['acerca', 'Acerca']]"
+            :key="v[0]"
+            class="px-5 py-2 rounded-lg transition-colors font-medium text-sm"
+            :style="{
+              background: vista === v[0] ? 'rgba(255,255,255,0.16)' : 'transparent',
+              color: vista === v[0] ? '#FFFFFF' : 'rgba(255,255,255,0.72)',
+              fontWeight: vista === v[0] ? 700 : 500,
+            }"
+            @click="vista = v[0]"
+          >{{ v[1] }}</button>
+        </nav>
 
         <!-- Barranquero — visible en todos los tamaños, escala con clamp -->
         <img
@@ -253,3 +264,12 @@ const itemsConAve = computed(() => {
     </footer>
   </div>
 </template>
+
+<style scoped>
+/* En sm+ reserva espacio a la derecha de la fila 1 para el barranquero */
+@media (min-width: 640px) {
+  .header-row1 {
+    padding-right: clamp(90px, 14vw, 180px);
+  }
+}
+</style>
