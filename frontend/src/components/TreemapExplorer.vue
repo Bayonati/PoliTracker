@@ -1,51 +1,54 @@
 <script setup>
-// D3 calcula el layout; Vue renderiza divs HTML (no SVG) para más libertad visual.
+// D3 calcula el layout; Vue renderiza divs absolutos sobre un contenedor responsive.
+// Un único treemap para desktop Y móvil — sin bifurcación de vistas.
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { hierarchy, treemap, treemapSquarify } from 'd3-hierarchy'
 import { formatoCiudadano, formatoPorcentaje, fraseEjecucion } from '../utils/formato.js'
 import { getSectorInfo } from '../utils/sectorInfo.js'
 
 const props = defineProps({
-  items: { type: Array, required: true },
-  esUltimoNivel: { type: Boolean, default: false },
+  items:        { type: Array,   required: true },
+  esUltimoNivel:{ type: Boolean, default: false },
 })
 const emit = defineEmits(['drill', 'subir'])
 
-const contenedor = ref(null)
-const ancho = ref(900)
-const alto = ref(504)
-const esMovil = ref(false)
-const tooltip = ref(null)
+// Dimensiones reales del contenedor (px) — las actualiza el ResizeObserver
+const ancho = ref(600)
+const alto  = ref(336)
+
+const contenedor  = ref(null)
+const tooltip     = ref(null)   // { x, y, item }
 const otrosAbierto = ref(false)
-const focoIdx = ref(-1)
+const focoIdx     = ref(-1)
 
 let observador = null
 
 onMounted(() => {
-  observador = new ResizeObserver((entradas) => {
-    const r = entradas[0].contentRect
-    ancho.value = Math.max(320, r.width)
-    alto.value = Math.max(280, r.height || Math.round(r.width * 560 / 1000))
-    esMovil.value = window.innerWidth < 768
+  observador = new ResizeObserver(([entry]) => {
+    const w = entry.contentRect.width
+    const h = entry.contentRect.height
+    ancho.value = Math.max(240, w)
+    // La altura CSS usa clamp(180px, 56vw, 560px); aquí la reflejamos exactamente
+    alto.value  = Math.max(180, h || Math.round(w * 0.56))
   })
   observador.observe(contenedor.value)
-  esMovil.value = window.innerWidth < 768
 })
 onBeforeUnmount(() => observador?.disconnect())
 
+// ── Agrupa los ítems <1% en un bloque "Otros" ──────────────────────────────
 const agrupados = computed(() => {
-  const grandes = props.items.filter((i) => i.porcentaje_del_total >= 1)
-  const chicos = props.items.filter((i) => i.porcentaje_del_total < 1)
-  const nodos = grandes.map((i) => ({ ...i, esOtros: false }))
+  const grandes = props.items.filter(i => i.porcentaje_del_total >= 1)
+  const chicos  = props.items.filter(i => i.porcentaje_del_total <  1)
+  const nodos   = grandes.map(i => ({ ...i, esOtros: false }))
   if (chicos.length > 1) {
     nodos.push({
-      nombre: `Otros (${chicos.length})`,
-      apropiado: String(chicos.reduce((s, i) => s + Number(i.apropiado), 0)),
-      pagado: String(chicos.reduce((s, i) => s + Number(i.pagado), 0)),
+      nombre:            `Otros (${chicos.length})`,
+      apropiado:         String(chicos.reduce((s, i) => s + Number(i.apropiado), 0)),
+      pagado:            String(chicos.reduce((s, i) => s + Number(i.pagado), 0)),
       porcentaje_del_total: Math.round(chicos.reduce((s, i) => s + i.porcentaje_del_total, 0) * 10) / 10,
       porcentaje_ejecucion: 0,
-      esOtros: true,
-      hijos: chicos,
+      esOtros:           true,
+      hijos:             chicos,
     })
   } else if (chicos.length === 1) {
     nodos.push({ ...chicos[0], esOtros: false })
@@ -53,106 +56,87 @@ const agrupados = computed(() => {
   return nodos
 })
 
-const itemsOtros = computed(() => agrupados.value.find((n) => n.esOtros)?.hijos ?? [])
+const itemsOtros = computed(() =>
+  agrupados.value.find(n => n.esOtros)?.hijos ?? [])
 
-// D3 layout → posiciones en porcentaje para CSS
+// ── Layout D3 → posiciones en % para CSS ───────────────────────────────────
 const rects = computed(() => {
-  if (!ancho.value) return []
+  if (!ancho.value || !alto.value) return []
+
   const raiz = hierarchy({ children: agrupados.value })
-    .sum((d) => Number(d.apropiado) || 0)
+    .sum(d => Number(d.apropiado) || 0)
     .sort((a, b) => b.value - a.value)
+
   treemap()
     .tile(treemapSquarify)
     .size([ancho.value, alto.value])
-    .paddingInner(4)(raiz)
-  return (raiz.children ?? []).map((n) => ({
-    item: n.data,
-    // Dimensiones en px para decidir qué mostrar
-    pw: n.x1 - n.x0,
-    ph: n.y1 - n.y0,
-    // Posiciones en % para CSS (evitan recalcular al resize)
-    left:   (n.x0       / ancho.value * 100).toFixed(3),
-    top:    (n.y0       / alto.value  * 100).toFixed(3),
-    width:  ((n.x1 - n.x0) / ancho.value * 100).toFixed(3),
-    height: ((n.y1 - n.y0) / alto.value  * 100).toFixed(3),
+    .paddingInner(3)(raiz)
+
+  return (raiz.children ?? []).map(n => ({
+    item:   n.data,
+    pw:     n.x1 - n.x0,         // ancho en px (para thresholds de texto)
+    ph:     n.y1 - n.y0,         // alto en px
+    left:   (n.x0           / ancho.value * 100).toFixed(3),
+    top:    (n.y0           / alto.value  * 100).toFixed(3),
+    width:  ((n.x1 - n.x0)  / ancho.value * 100).toFixed(3),
+    height: ((n.y1 - n.y0)  / alto.value  * 100).toFixed(3),
   }))
 })
 
+// ── Color y ave por sector ──────────────────────────────────────────────────
 function infoColor(item) {
   if (item.esOtros) return { color: '#9AA2AE', textColor: '#15294A', ave: null }
   return getSectorInfo(item.nombre)
 }
 
-function labelSize(pw) { return Math.max(10, Math.min(13, pw / 16)) + 'px' }
-function valueSize(pw) { return Math.max(13, Math.min(26, pw / 11.5)) + 'px' }
+// Tamaños de fuente escalados al ancho real del bloque
+function labelSize(pw) { return Math.max(9,  Math.min(13, pw / 16)) + 'px' }
+function valueSize(pw) { return Math.max(11, Math.min(26, pw / 11)) + 'px' }
 
+// ── Interacción ────────────────────────────────────────────────────────────
 function clickNodo(item) {
-  if (item.esOtros) { otrosAbierto.value = !otrosAbierto.value }
+  if (item.esOtros)          { otrosAbierto.value = !otrosAbierto.value }
   else if (!props.esUltimoNivel) { emit('drill', item.nombre) }
 }
 
 function moverTooltip(ev, item) {
   const caja = contenedor.value.getBoundingClientRect()
   tooltip.value = {
-    x: Math.min(ev.clientX - caja.left + 14, caja.width - 275),
-    y: ev.clientY - caja.top + 14,
+    x:    Math.min(ev.clientX - caja.left + 12, caja.width - 270),
+    y:    ev.clientY - caja.top  + 12,
     item,
   }
 }
 
 function colorDeNombre(nombre) { return getSectorInfo(nombre).color }
 
+// Navegación por teclado: flechas / Enter / Escape
 function tecla(ev) {
   const n = rects.value.length
-  if (n === 0) return
-  if (ev.key === 'ArrowRight' || ev.key === 'ArrowDown') {
-    focoIdx.value = (focoIdx.value + 1) % n; ev.preventDefault()
-  } else if (ev.key === 'ArrowLeft' || ev.key === 'ArrowUp') {
-    focoIdx.value = (focoIdx.value - 1 + n) % n; ev.preventDefault()
-  } else if (ev.key === 'Enter' && focoIdx.value >= 0) {
-    clickNodo(rects.value[focoIdx.value].item); ev.preventDefault()
-  } else if (ev.key === 'Escape') {
-    emit('subir'); ev.preventDefault()
-  }
+  if (!n) return
+  if      (ev.key === 'ArrowRight' || ev.key === 'ArrowDown')  { focoIdx.value = (focoIdx.value + 1) % n;       ev.preventDefault() }
+  else if (ev.key === 'ArrowLeft'  || ev.key === 'ArrowUp')    { focoIdx.value = (focoIdx.value - 1 + n) % n;   ev.preventDefault() }
+  else if (ev.key === 'Enter' && focoIdx.value >= 0)           { clickNodo(rects.value[focoIdx.value].item);      ev.preventDefault() }
+  else if (ev.key === 'Escape')                                 { emit('subir');                                   ev.preventDefault() }
 }
 </script>
 
 <template>
   <div ref="contenedor" class="relative w-full select-none" @keydown="tecla">
 
-    <!-- Móvil: barras horizontales (treemap táctil pequeño es inusable) -->
-    <div v-if="esMovil" class="flex flex-col gap-2">
-      <button
-        v-for="item in agrupados"
-        :key="item.nombre"
-        class="text-left rounded-xl p-3 transition-transform active:scale-[0.99]"
-        :style="{ backgroundColor: infoColor(item).color, color: infoColor(item).textColor }"
-        @click="clickNodo(item)"
-      >
-        <div class="flex justify-between gap-2 items-baseline">
-          <span class="font-semibold text-sm leading-tight">{{ item.nombre }}</span>
-          <span class="text-xs opacity-80 shrink-0">{{ formatoPorcentaje(item.porcentaje_del_total) }}</span>
-        </div>
-        <div class="font-display font-bold tabular text-base mt-0.5">{{ formatoCiudadano(item.apropiado) }}</div>
-        <div class="h-1.5 mt-1.5 rounded overflow-hidden" style="background: rgba(0,0,0,0.2);" v-if="!item.esOtros">
-          <div class="h-full rounded"
-               :style="{
-                 width: Math.min(item.porcentaje_ejecucion, 100) + '%',
-                 background: infoColor(item).textColor === '#FFFFFF' ? 'rgba(255,255,255,0.6)' : 'rgba(21,41,74,0.4)',
-               }" />
-        </div>
-      </button>
-    </div>
-
-    <!-- Escritorio: treemap con divs absolutamente posicionados -->
+    <!--
+      Contenedor del treemap.
+      height usa clamp para que sea usable tanto en móvil (180 px mínimo)
+      como en escritorio (560 px máximo), proporcional al ancho disponible.
+    -->
     <div
-      v-else
       class="relative w-full rounded-xl overflow-hidden"
-      style="aspect-ratio: 1000/560; background: #EEF1EB; min-height: 280px;"
+      style="height: clamp(180px, 56vw, 560px); background: #EEF1EB;"
       role="group"
-      aria-label="Treemap del presupuesto. Use flechas para moverse, Enter para entrar, Escape para subir."
+      aria-label="Treemap del presupuesto. Flechas para moverse, Enter para entrar, Escape para subir."
       tabindex="0"
     >
+      <!-- Un div por bloque, posicionado en % ────────────────────────────── -->
       <div
         v-for="(r, i) in rects"
         :key="r.item.nombre"
@@ -164,11 +148,11 @@ function tecla(ev) {
           height:     r.height + '%',
           background: infoColor(r.item).color,
           color:      infoColor(r.item).textColor,
-          padding:    '10px 12px',
+          padding:    '8px 10px',
           boxSizing:  'border-box',
           display:    'flex',
           flexDirection: 'column',
-          gap:        '3px',
+          gap:        '2px',
           cursor:     r.item.esOtros || !esUltimoNivel ? 'pointer' : 'default',
           outline:    focoIdx === i ? '3px solid #E9B44C' : 'none',
           outlineOffset: '-2px',
@@ -178,16 +162,18 @@ function tecla(ev) {
         @mousemove="moverTooltip($event, r.item)"
         @mouseleave="tooltip = null"
       >
-        <!-- Nombre + pluma decorativa -->
-        <div v-if="r.pw > 80"
-             class="flex items-center gap-1.5 overflow-hidden font-bold uppercase leading-tight tracking-wide"
-             :style="{ fontSize: labelSize(r.pw) }">
+        <!-- Nombre + pluma decorativa (si el bloque tiene espacio) -->
+        <div
+          v-if="r.pw > 52"
+          class="flex items-center gap-1 overflow-hidden font-bold uppercase leading-tight tracking-wide"
+          :style="{ fontSize: labelSize(r.pw) }"
+        >
           <span
             v-if="!r.item.esOtros"
             class="flex-shrink-0"
             :style="{
               display: 'inline-block',
-              width: '7px', height: '9.5px',
+              width: '6px', height: '8px',
               borderRadius: '60% 60% 60% 0',
               transform: 'rotate(40deg)',
               background: infoColor(r.item).textColor === '#FFFFFF'
@@ -198,56 +184,52 @@ function tecla(ev) {
           <span class="truncate">{{ r.item.nombre }}</span>
         </div>
 
-        <!-- Monto -->
-        <div v-if="r.pw > 100 && r.ph > 68"
-             class="font-display font-extrabold leading-none overflow-hidden whitespace-nowrap"
-             :style="{ fontSize: valueSize(r.pw) }">
+        <!-- Monto (requiere más espacio) -->
+        <div
+          v-if="r.pw > 72 && r.ph > 52"
+          class="font-display font-extrabold leading-none overflow-hidden whitespace-nowrap"
+          :style="{ fontSize: valueSize(r.pw) }"
+        >
           {{ formatoCiudadano(r.item.apropiado) }}
         </div>
 
-        <!-- Porcentaje -->
-        <div v-if="r.pw > 110 && r.ph > 100" style="font-size: 12px; opacity: 0.82;">
+        <!-- Porcentaje (solo si hay espacio generoso) -->
+        <div
+          v-if="r.pw > 88 && r.ph > 82"
+          style="font-size: 11px; opacity: 0.82;"
+        >
           {{ formatoPorcentaje(r.item.porcentaje_del_total) }} del total
         </div>
-      </div>
-    </div>
+      </div><!-- /bloque -->
+    </div><!-- /contenedor treemap -->
 
-    <!-- Tooltip -->
+    <!-- Tooltip (solo en dispositivos con puntero) ──────────────────────── -->
     <div
-      v-if="tooltip && !esMovil"
+      v-if="tooltip"
       class="absolute z-10 pointer-events-none rounded-xl shadow-xl text-white"
-      style="width: 265px; background: #0E1B30; padding: 13px 15px; font-size: 13.5px;"
+      style="width: 258px; background: #0E1B30; padding: 12px 14px; font-size: 13px;"
       :style="{ left: tooltip.x + 'px', top: tooltip.y + 'px' }"
       role="tooltip"
     >
-      <!-- Encabezado con pluma -->
-      <div class="flex items-center gap-2 font-bold mb-2" style="font-size: 14.5px;">
+      <div class="flex items-center gap-2 font-bold mb-2" style="font-size: 14px;">
         <span :style="{
-          display: 'inline-block', width: '9px', height: '12px', flexShrink: 0,
+          display: 'inline-block', width: '8px', height: '11px', flexShrink: 0,
           borderRadius: '60% 60% 60% 0', transform: 'rotate(40deg)',
           background: infoColor(tooltip.item).color,
         }"></span>
         {{ tooltip.item.nombre }}
       </div>
-
-      <div class="flex justify-between py-0.5">
-        <span style="opacity:.7">Asignado</span>
-        <span class="tabular">{{ formatoCiudadano(tooltip.item.apropiado) }}</span>
-      </div>
-      <div class="flex justify-between py-0.5">
-        <span style="opacity:.7">Pagado</span>
-        <span class="tabular">{{ formatoCiudadano(tooltip.item.pagado) }}</span>
-      </div>
+      <div class="flex justify-between py-0.5"><span style="opacity:.7">Asignado</span><span class="tabular">{{ formatoCiudadano(tooltip.item.apropiado) }}</span></div>
+      <div class="flex justify-between py-0.5"><span style="opacity:.7">Pagado</span><span class="tabular">{{ formatoCiudadano(tooltip.item.pagado) }}</span></div>
       <div v-if="!tooltip.item.esOtros" class="flex justify-between py-0.5">
         <span style="opacity:.7">Ejecución</span>
         <span class="tabular">{{ formatoPorcentaje(tooltip.item.porcentaje_ejecucion) }}</span>
       </div>
-
       <template v-if="!tooltip.item.esOtros">
         <div class="mt-2 pt-2 border-t text-sm" style="border-color:rgba(255,255,255,0.18); color:#7FD3DE;">
           {{ fraseEjecucion(tooltip.item.porcentaje_ejecucion) }}
         </div>
-        <div v-if="infoColor(tooltip.item).ave" class="mt-1" style="font-size: 12px; opacity: 0.6;">
+        <div v-if="infoColor(tooltip.item).ave" class="mt-1" style="font-size:11px; opacity:.6;">
           Ave guía: <strong class="text-white">{{ infoColor(tooltip.item).ave }}</strong>
         </div>
       </template>
@@ -256,12 +238,14 @@ function tecla(ev) {
       </div>
     </div>
 
-    <!-- Lista expandida de "Otros" -->
-    <div v-if="otrosAbierto && itemsOtros.length"
-         class="mt-3 bg-white border border-neutro/20 rounded-xl p-4">
+    <!-- Lista expandida de "Otros" ─────────────────────────────────────── -->
+    <div
+      v-if="otrosAbierto && itemsOtros.length"
+      class="mt-3 bg-white border border-neutro/20 rounded-xl p-4"
+    >
       <div class="flex justify-between items-center mb-3">
-        <h3 class="font-semibold text-tinta">Otros sectores ({{ itemsOtros.length }})</h3>
-        <button class="text-sm text-turquesa hover:underline" @click="otrosAbierto = false">Cerrar</button>
+        <h3 class="font-semibold text-tinta text-sm">Otros sectores ({{ itemsOtros.length }})</h3>
+        <button class="text-xs text-turquesa hover:underline" @click="otrosAbierto = false">Cerrar</button>
       </div>
       <ul class="divide-y divide-neutro/10">
         <li v-for="item in itemsOtros" :key="item.nombre">
@@ -271,14 +255,15 @@ function tecla(ev) {
             @click="emit('drill', item.nombre)"
           >
             <div class="flex items-center gap-2 min-w-0">
-              <span class="flex-shrink-0 w-3 h-3 rounded-sm"
+              <span class="flex-shrink-0 w-2.5 h-2.5 rounded-sm"
                     :style="{ background: colorDeNombre(item.nombre) }"></span>
-              <span class="truncate">{{ item.nombre }}</span>
+              <span class="truncate text-tinta">{{ item.nombre }}</span>
             </div>
-            <span class="tabular text-neutro shrink-0">{{ formatoCiudadano(item.apropiado) }}</span>
+            <span class="tabular text-neutro shrink-0 text-xs">{{ formatoCiudadano(item.apropiado) }}</span>
           </button>
         </li>
       </ul>
     </div>
+
   </div>
 </template>

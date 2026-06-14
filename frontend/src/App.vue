@@ -44,40 +44,48 @@ const itemsConAve = computed(() => {
       <div class="absolute inset-0 pointer-events-none"
            style="background: radial-gradient(130% 150% at 86% 24%, rgba(43,167,181,0.26), transparent 58%)"></div>
 
-      <div class="relative max-w-6xl mx-auto px-6 flex items-center justify-between gap-6"
-           style="min-height: 108px; padding-right: 200px;">
-        <!-- Marca -->
-        <div class="flex flex-col gap-0.5">
-          <div style="line-height: 0.94;">
-            <span class="block font-display font-extrabold text-white tracking-tight" style="font-size: 27px;">Colombia</span>
-            <span class="block font-display font-semibold tracking-tight" style="font-size: 27px; color: #7FD3DE;">Observa</span>
+      <div class="relative max-w-6xl mx-auto px-4 sm:px-6"
+           style="min-height: 80px; padding-right: clamp(16px, 4vw, 200px);">
+        <div class="flex items-center justify-between gap-3 py-3 sm:py-4"
+             style="padding-right: clamp(0px, 14vw, 180px);">
+
+          <!-- Marca -->
+          <div class="flex flex-col gap-0.5 flex-shrink-0">
+            <div style="line-height: 0.94;">
+              <span class="block font-display font-extrabold text-white tracking-tight"
+                    style="font-size: clamp(18px, 4vw, 27px);">Colombia</span>
+              <span class="block font-display font-semibold tracking-tight"
+                    style="font-size: clamp(18px, 4vw, 27px); color: #7FD3DE;">Observa</span>
+            </div>
+            <span class="hidden sm:block font-semibold"
+                  style="font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: #8295B4;">
+              Vigilancia del gasto público
+            </span>
           </div>
-          <span class="font-semibold" style="font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; color: #8295B4;">
-            Vigilancia del gasto público
-          </span>
+
+          <!-- Navegación -->
+          <nav class="flex flex-wrap gap-0.5 sm:gap-1" aria-label="Navegación principal">
+            <button
+              v-for="v in [['explorador', 'Explorador'], ['ingresos', 'Ingresos'], ['acerca', 'Acerca']]"
+              :key="v[0]"
+              class="px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-colors font-medium text-xs sm:text-sm"
+              :style="{
+                background: vista === v[0] ? 'rgba(255,255,255,0.16)' : 'transparent',
+                color: vista === v[0] ? '#FFFFFF' : 'rgba(255,255,255,0.72)',
+                fontWeight: vista === v[0] ? 700 : 500,
+              }"
+              @click="vista = v[0]"
+            >{{ v[1] }}</button>
+          </nav>
         </div>
 
-        <!-- Navegación -->
-        <nav class="flex gap-1 text-sm flex-wrap" aria-label="Navegación principal">
-          <button
-            v-for="v in [['explorador', 'Explorador'], ['ingresos', 'Ingresos vs Gastos'], ['acerca', 'Acerca de']]"
-            :key="v[0]"
-            class="px-3 py-2 rounded-lg transition-colors font-medium"
-            :style="{
-              background: vista === v[0] ? 'rgba(255,255,255,0.16)' : 'transparent',
-              color: vista === v[0] ? '#FFFFFF' : 'rgba(255,255,255,0.72)',
-              fontWeight: vista === v[0] ? 700 : 500,
-            }"
-            @click="vista = v[0]"
-          >{{ v[1] }}</button>
-        </nav>
-
-        <!-- Barranquero bird -->
+        <!-- Barranquero — se oculta en pantallas muy pequeñas -->
         <img
           src="/assets/barranquero.png"
           alt="Barranquero, el ave de Colombia Observa"
-          class="absolute pointer-events-none"
-          style="height: 172px; right: 0; top: -4px; filter: drop-shadow(0 12px 20px rgba(0,0,0,0.4));"
+          class="absolute pointer-events-none hidden sm:block"
+          style="height: clamp(100px, 14vw, 172px); right: 0; top: -4px;
+                 filter: drop-shadow(0 12px 20px rgba(0,0,0,0.4));"
         />
       </div>
 
@@ -173,7 +181,7 @@ const itemsConAve = computed(() => {
 
       <!-- ============ ACERCA DE ============ -->
       <section v-else class="max-w-5xl">
-        <div class="grid gap-8" style="grid-template-columns: 1.4fr 1fr;">
+        <div class="grid gap-8 grid-cols-1 md:grid-cols-[1.4fr_1fr]">
           <div>
             <h1 class="font-display font-extrabold text-2xl md:text-3xl mb-3 text-tinta">¿Qué es Colombia Observa?</h1>
             <div class="space-y-4 text-tinta/90" style="font-size: 16px; line-height: 1.65;">
