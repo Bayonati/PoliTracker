@@ -4,9 +4,10 @@ export default {
   theme: {
     extend: {
       colors: {
-        tinta: '#16233A',
-        papel: '#FAFBFC',
+        tinta: '#15294A',
+        papel: '#F7F8F5',
         andino: '#2D6A8F',
+        turquesa: '#178A99',
         oro: '#E9B44C',
         ejecutado: '#2E8B57',
         alerta: '#C0392B',
