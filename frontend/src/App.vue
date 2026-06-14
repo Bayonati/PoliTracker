@@ -139,7 +139,17 @@ const itemsConAve = computed(() => {
           </p>
 
           <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
-            <Breadcrumb :path="state.path" @navegar="irANivel" />
+            <div class="flex items-center gap-2">
+              <button
+                v-if="nivel > 0"
+                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-sm transition-colors"
+                style="background: #178A99; color: #fff;"
+                @click="irANivel(nivel - 1)"
+              >
+                ← Volver
+              </button>
+              <Breadcrumb :path="state.path" @navegar="irANivel" />
+            </div>
             <div class="flex rounded-lg border overflow-hidden text-sm" style="border-color: rgba(107,118,134,0.3);"
                  role="group" aria-label="Cambiar entre mapa y tabla">
               <button class="px-3 py-1.5 font-medium transition-colors"
