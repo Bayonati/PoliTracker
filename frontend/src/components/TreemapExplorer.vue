@@ -160,8 +160,9 @@ function tecla(ev) {
           <span v-if="!esUltimoNivel" class="text-neutro shrink-0" style="font-size:17px;">›</span>
         </div>
 
-        <!-- Fila 2: barra de progreso + etiquetas -->
+        <!-- Fila 2: barra del % del total + etiquetas de ejecución -->
         <div class="pl-[22px] flex flex-col gap-1">
+          <!-- Barra: qué porción del presupuesto total ocupa este sector -->
           <div
             class="relative h-2 rounded-full overflow-hidden w-full"
             style="background: rgba(107,118,134,0.12);"
@@ -169,18 +170,24 @@ function tecla(ev) {
             <div
               class="absolute inset-y-0 left-0 rounded-full"
               :style="{
-                width:      pctEjecucion(item) + '%',
-                background: colorEjecucion(pctEjecucion(item)),
+                width:      Math.min(100, item.porcentaje_del_total) + '%',
+                background: infoColor(item).color,
                 transition: 'width .4s ease-out',
               }"
             ></div>
           </div>
-          <span
-            class="text-xs font-semibold"
-            :style="{ color: colorEjecucion(pctEjecucion(item)) }"
-          >
-            Pagado {{ formatoPorcentaje(pctEjecucion(item)) }}
-          </span>
+          <!-- Etiquetas: ejecución (izquierda) · monto pagado (derecha) -->
+          <div class="flex justify-between items-center">
+            <span
+              class="text-xs font-semibold"
+              :style="{ color: colorEjecucion(pctEjecucion(item)) }"
+            >
+              Pagado {{ formatoPorcentaje(pctEjecucion(item)) }}
+            </span>
+            <span class="text-xs text-neutro tabular">
+              {{ formatoCiudadano(item.pagado) }}
+            </span>
+          </div>
         </div>
       </button>
     </div>
