@@ -175,17 +175,12 @@ function tecla(ev) {
               }"
             ></div>
           </div>
-          <div class="flex justify-between items-center">
-            <span
-              class="text-xs font-semibold"
-              :style="{ color: colorEjecucion(pctEjecucion(item)) }"
-            >
-              Pagado {{ formatoPorcentaje(pctEjecucion(item)) }}
-            </span>
-            <span class="text-xs text-neutro tabular">
-              {{ formatoCiudadano(item.pagado) }}
-            </span>
-          </div>
+          <span
+            class="text-xs font-semibold"
+            :style="{ color: colorEjecucion(pctEjecucion(item)) }"
+          >
+            Pagado {{ formatoPorcentaje(pctEjecucion(item)) }}
+          </span>
         </div>
       </button>
     </div>
