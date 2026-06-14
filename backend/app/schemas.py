@@ -9,6 +9,7 @@ class ItemGasto(BaseModel):
     pagado: str
     porcentaje_del_total: float
     porcentaje_ejecucion: float
+    num_items: int = 0
 
 
 class RespuestaNivel(BaseModel):

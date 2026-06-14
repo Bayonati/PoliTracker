@@ -42,6 +42,7 @@ def construir_respuesta(anio: int, filas) -> RespuestaNivel:
             pagado=str(f.pagado or Decimal(0)),
             porcentaje_del_total=round(float(f.apropiado / total_ap * 100), 1),
             porcentaje_ejecucion=round(float((f.pagado or 0) / f.apropiado * 100), 1),
+            num_items=getattr(f, 'num_items', 0),
         )
         for f in filas
     ]
@@ -62,6 +63,7 @@ def sectores(anio: int = Query(...), db: Session = Depends(get_db)):
             Gasto.sector.label("nombre"),
             func.sum(Gasto.apropiacion_vigente).label("apropiado"),
             func.sum(Gasto.pagos).label("pagado"),
+            func.count(func.distinct(Gasto.entidad)).label("num_items"),
         )
         .where(Gasto.anio == anio, Gasto.mes == mes)
         .group_by(Gasto.sector)
@@ -80,6 +82,7 @@ def entidades(anio: int = Query(...), sector: str = Query(...),
             Gasto.entidad.label("nombre"),
             func.sum(Gasto.apropiacion_vigente).label("apropiado"),
             func.sum(Gasto.pagos).label("pagado"),
+            func.count(func.distinct(Gasto.tipo_gasto)).label("num_items"),
         )
         .where(Gasto.anio == anio, Gasto.mes == mes, Gasto.sector == sector)
         .group_by(Gasto.entidad)
@@ -98,6 +101,7 @@ def tipos(anio: int = Query(...), sector: str = Query(...),
             Gasto.tipo_gasto.label("nombre"),
             func.sum(Gasto.apropiacion_vigente).label("apropiado"),
             func.sum(Gasto.pagos).label("pagado"),
+            func.count(func.distinct(Gasto.detalle_gasto)).label("num_items"),
         )
         .where(Gasto.anio == anio, Gasto.mes == mes,
                Gasto.sector == sector, Gasto.entidad == entidad)

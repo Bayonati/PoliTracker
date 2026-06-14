@@ -176,16 +176,18 @@ function tecla(ev) {
               }"
             ></div>
           </div>
-          <!-- Etiquetas: ejecución (izquierda) · monto pagado (derecha) -->
+          <!-- Etiquetas debajo de la barra -->
           <div class="flex justify-between items-center">
+            <!-- Izquierda: % del presupuesto total (lo que representa la barra) -->
             <span
-              class="text-xs font-semibold"
-              :style="{ color: colorEjecucion(pctEjecucion(item)) }"
+              class="text-xs font-semibold tabular"
+              :style="{ color: infoColor(item).color }"
             >
-              Pagado {{ formatoPorcentaje(pctEjecucion(item)) }}
+              {{ formatoPorcentaje(item.porcentaje_del_total) }} del presupuesto
             </span>
-            <span class="text-xs text-neutro tabular">
-              {{ formatoCiudadano(item.pagado) }}
+            <!-- Derecha: cuántos cuadros hay adentro -->
+            <span v-if="item.num_items > 0 && !esUltimoNivel" class="text-xs text-neutro">
+              {{ item.num_items }} {{ item.num_items === 1 ? 'cuadro' : 'cuadros' }} adentro
             </span>
           </div>
         </div>
